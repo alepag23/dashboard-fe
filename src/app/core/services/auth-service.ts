@@ -9,12 +9,12 @@ export class AuthService {
     private readonly http = inject(HttpClient);
     baseUrlAuth: string = environment.apiPath + environment.apiUrlAuth;
 
-    register(data: RegisterReq): Observable<LoginRes> {
-        return this.http.post<LoginRes>(`${this.baseUrlAuth}/register`, data);
+    register(data: RegisterReq): Observable<User> {
+        return this.http.post<User>(`${this.baseUrlAuth}/register`, data);
     }
 
-    login(data: LoginReq): Observable<LoginRes> {
-        return this.http.post<LoginRes>(`${this.baseUrlAuth}/login`, data);
+    login(data: LoginReq): Observable<User> {
+        return this.http.post<User>(`${this.baseUrlAuth}/login`, data);
     }
 
     /**
