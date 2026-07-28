@@ -2,8 +2,12 @@
 /* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
   "extends": "./tsconfig.json",
+  "angularCompilerOptions": {
+    "strictTemplates": true,
+  },
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
+    "rootDir": "./src",
     "types": [
       "vitest/globals"
     ]
