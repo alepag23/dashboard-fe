@@ -1,10 +1,3 @@
-export interface User {
-    id: number;
-    name: string;
-    surname: string;
-    //role:string;
-}
-
 export interface RegisterReq {
     name: string;
     surname: string;
@@ -14,8 +7,10 @@ export interface RegisterReq {
 
 export type LoginReq = Omit<RegisterReq, 'name' | 'surname'>;
 
-export interface LoginRes {
-    message: string;
+export interface User extends Omit<RegisterReq, 'password'> {
+    //id: number;
+    //role:string;
+    createdAt: string;
 }
 
 export type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'unauthenticated';

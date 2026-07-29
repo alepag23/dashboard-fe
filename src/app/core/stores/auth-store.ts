@@ -34,7 +34,7 @@ export const AuthStore = signalStore(
         async checkSession(): Promise<void> {
             patchState(store, { status: 'loading', error: null });
             try {
-                const user = await firstValueFrom(authService.getMe());
+                const user = await firstValueFrom(authService.checkSession());
                 patchState(store, { user, status: 'authenticated', error: null });
             } catch {
                 patchState(store, { user: null, status: 'unauthenticated' })
