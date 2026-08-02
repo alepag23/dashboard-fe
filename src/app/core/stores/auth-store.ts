@@ -46,16 +46,15 @@ export const AuthStore = signalStore(
          * @param data
          * @return boolean
          */
-        async login(data: LoginReq): Promise<boolean> {
+        async login(data: LoginReq): Promise<void> {
             patchState(store, { status: 'loading', error: null });
             try {
                 const user = await firstValueFrom(authService.login(data));
                 patchState(store, { user, status: 'authenticated', error: null });
                 await router.navigate(['/dashboard']);
-                return true;
             } catch {
-                patchState(store, { user: null, status: 'unauthenticated', error: 'Credential invalid' })
-                return false;
+                patchState(store, { user: null, status: 'unauthenticated', error: 'Credential invalid' });
+                // add snackbar for manage error message
             }
         },
 
@@ -64,9 +63,8 @@ export const AuthStore = signalStore(
          * @param data 
          * @return boolean
          */
-        async register(data: RegisterReq): Promise<boolean> {
+        async register(data: RegisterReq): Promise<void> {
             //TODO
-            return false;
         },
 
         /**
