@@ -35,3 +35,17 @@ body {
 }
 
 /* You can add global styles to this file, and also import other style files */
+/* NOTIFICATIONS */
+.snack-error {
+  @include mat.snack-bar-overrides((container-color: #ba1a1a, // error color palette
+      supporting-text-color: #ffffff,
+    ));
+  --mat-snack-bar-button-color: #ffdad6; // error 90 color palette
+}
+
+.snack-success {
+  @include mat.snack-bar-overrides((container-color: #2e6b4f,
+      supporting-text-color: #ffffff,
+    ));
+  --mat-snack-bar-button-color: #b8f0d0;
+}

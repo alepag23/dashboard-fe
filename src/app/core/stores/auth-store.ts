@@ -4,12 +4,12 @@ import { patchState, signalStore, withComputed, withMethods, withState } from "@
 import { AuthService } from "../services/auth-service";
 import { Router } from "@angular/router";
 import { firstValueFrom } from "rxjs";
-
+import { NotificationService } from "../services/notification-service";
+import { extractErrorMessage } from "../../shared/utils/error-handler-util";
 
 const initialState: AuthSate = {
     user: null,
     status: 'idle',
-    error: null,
 }
 
 export const AuthStore = signalStore(
@@ -25,36 +25,39 @@ export const AuthStore = signalStore(
     withMethods((
         store,
         authService = inject(AuthService),
-        router = inject(Router)
+        router = inject(Router),
+        snackBar = inject(NotificationService),
     ) => ({
 
         /**
          * Runs on application startup (or page refresh)
          */
         async checkSession(): Promise<void> {
-            patchState(store, { status: 'loading', error: null });
+            patchState(store, { status: 'loading', });
             try {
                 const user = await firstValueFrom(authService.checkSession());
-                patchState(store, { user, status: 'authenticated', error: null });
+                patchState(store, { user, status: 'authenticated', });
             } catch {
-                patchState(store, { user: null, status: 'unauthenticated' })
+                patchState(store, { user: null, status: 'unauthenticated' });
+                router.navigate(['/login']);
             }
         },
 
         /**
          * Login 
          * @param data
-         * @return boolean
+         * @return void
          */
         async login(data: LoginReq): Promise<void> {
-            patchState(store, { status: 'loading', error: null });
+            patchState(store, { status: 'loading', });
             try {
                 const user = await firstValueFrom(authService.login(data));
-                patchState(store, { user, status: 'authenticated', error: null });
+                patchState(store, { user, status: 'authenticated', });
                 await router.navigate(['/dashboard']);
-            } catch {
-                patchState(store, { user: null, status: 'unauthenticated', error: 'Credential invalid' });
-                // add snackbar for manage error message
+            } catch (error) {
+                const errorMessage: string = extractErrorMessage(error);
+                patchState(store, { user: null, status: 'unauthenticated' });
+                snackBar.error(errorMessage);
             }
         },
 
@@ -76,7 +79,8 @@ export const AuthStore = signalStore(
             } catch {
                 // We ignore the HTTP error and reset the client-side state anyway
             } finally {
-                patchState(store, { user: null, status: 'unauthenticated', error: null });
+                patchState(store, { user: null, status: 'unauthenticated' });
+                router.navigate(['/login']);
             }
         }
 

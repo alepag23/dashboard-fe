@@ -18,6 +18,5 @@ export type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'unauthenticated
 export interface AuthSate {
     user: User | null;
     status: AuthStatus;
-    error: string | null;
 }
 

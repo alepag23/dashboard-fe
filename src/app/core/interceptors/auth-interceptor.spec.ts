@@ -14,4 +14,12 @@ describe('authInterceptor', () => {
   it('should be created', () => {
     expect(interceptor).toBeTruthy();
   });
+
+  it('should add withCredentials', () => {
+
+  });
+
+  it('redirect to login page if error = 401', () => {
+
+  });
 });
