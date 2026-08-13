@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { email, form, FormField, FormRoot, minLength, required } from '@angular/forms/signals';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AuthStore } from '../../core/stores/auth-store';
@@ -10,20 +10,16 @@ import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
   imports: [MatFormFieldModule, MatInputModule, FormField, FormRoot, MatButtonModule],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login implements OnInit {
+export class Login {
   private readonly authStore = inject(AuthStore);
   protected loginModel = signal<LoginReq>({
     email: '',
     password: '',
   });
-
-  ngOnInit(): void {
-  }
 
   protected loginForm = form(this.loginModel, (schemaPath) => {
     // Email validation
