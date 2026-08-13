@@ -12,11 +12,6 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([
         authInterceptor, // Enable automatic sending of httpOnly to the backend
       ])),
-    // APP INITIALIZER: Initializes the state before mounting the Guards and UI
-    provideAppInitializer(() => {
-      const authStore = inject(AuthStore);
-      return authStore.checkSession();
-    }),
     provideRouter(routes),
   ]
 };
