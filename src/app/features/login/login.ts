@@ -31,7 +31,7 @@ export class Login {
   }, {
     submission: {
       action: async (field) => {
-        await this.authStore.login(field().value());
+        this.authStore.login(field().value());
       }
     }
   });
