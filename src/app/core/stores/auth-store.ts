@@ -1,11 +1,13 @@
 import { computed, inject } from "@angular/core";
-import { AuthSate, AuthStatus, LoginReq, RegisterReq, User } from "../../shared/models/auth-model";
-import { patchState, signalStore, withComputed, withMethods, withState } from "@ngrx/signals";
+import { AuthSate, LoginReq, RegisterReq } from "../../shared/models/auth-model";
+import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from "@ngrx/signals";
 import { AuthService } from "../services/auth-service";
 import { Router } from "@angular/router";
-import { firstValueFrom } from "rxjs";
+import { exhaustMap, firstValueFrom, pipe, switchMap, tap } from "rxjs";
 import { NotificationService } from "../services/notification-service";
-import { extractErrorMessage } from "../../shared/utils/error-handler-util";
+import { rxMethod } from '@ngrx/signals/rxjs-interop';
+import { tapResponse } from '@ngrx/operators';
+import { HttpErrorResponse } from "@angular/common/http";
 
 const initialState: AuthSate = {
     user: null,
@@ -21,7 +23,6 @@ export const AuthStore = signalStore(
         isLoading: computed(() => store.status() === 'loading'),
         currentUser: computed(() => store.user()),
     })),
-
     withMethods((
         store,
         authService = inject(AuthService),
@@ -32,57 +33,90 @@ export const AuthStore = signalStore(
         /**
          * Runs on application startup (or page refresh)
          */
-        async checkSession(): Promise<void> {
-            patchState(store, { status: 'loading', });
-            try {
-                const user = await firstValueFrom(authService.checkSession());
-                patchState(store, { user, status: 'authenticated', });
-            } catch {
-                patchState(store, { user: null, status: 'unauthenticated' });
-                router.navigate(['/login']);
-            }
+        checkSession: rxMethod<void>(
+            pipe(
+                tap(() => patchState(store, { status: "loading" })),
+                exhaustMap(() => (
+                    authService.checkSession().pipe(
+                        tapResponse({
+                            next: (res) => {
+                                if (res.authenticated && res.user) {
+                                    patchState(store, { user: res.user, status: 'authenticated' });
+                                } else {
+                                    patchState(store, { user: null, status: 'authenticated' });
+                                }
+
+                            },
+                            error: () => {
+                                patchState(store, { user: null, status: 'unauthenticated' });
+                            }
+                        })
+                    )
+                ))
+            )
+        ),
+        login: rxMethod<LoginReq>(
+            pipe(
+                // 1. set the state 
+                tap(() => patchState(store, { status: 'loading' })),
+                exhaustMap((data) => (
+                    authService.login(data).pipe(
+                        tapResponse({
+                            next: (user) => {
+                                patchState(store, { user, status: 'authenticated' });
+                                router.navigate(['/dashboard']);
+                                snackBar.success('Login success');
+                            },
+                            error: () => {
+                                patchState(store, { user: null, status: 'unauthenticated' });
+                            }
+                        }),
+                    )
+                )),
+            )
+        ),
+        register: rxMethod<RegisterReq>(
+            pipe(
+                // 1. Set the state to "loading" at the start of the invocation.
+                tap(() => patchState(store, { status: 'loading' })),
+                // 2. to prevent spam calls 
+                exhaustMap((data) => (
+                    authService.register(data).pipe(
+                        tapResponse({
+                            next: (user) => {
+                                patchState(store, { user, status: 'authenticated' });
+                                router.navigate(['/dashboard']);
+                                snackBar.success('Account created successfully!');
+                            },
+                            error: () => {
+                                patchState(store, { user: null, status: 'unauthenticated' });
+                            },
+                        })
+                    )
+                )),
+            )
+        ),
+        logout: rxMethod<void>(
+            pipe(
+                exhaustMap(() => (
+                    authService.logout().pipe(
+                        tapResponse({
+                            next: () => {
+                                patchState(store, { user: null, status: 'unauthenticated' });
+                                router.navigate(['/login']);
+                            },
+                            error: () => {
+                            }
+                        })
+                    )
+                ))
+            )
+        )
+    })),
+    withHooks({
+        onInit(store) {
+            store.checkSession();
         },
+    }),
 
-        /**
-         * Login 
-         * @param data
-         * @return void
-         */
-        async login(data: LoginReq): Promise<void> {
-            patchState(store, { status: 'loading', });
-            try {
-                const user = await firstValueFrom(authService.login(data));
-                patchState(store, { user, status: 'authenticated', });
-                await router.navigate(['/dashboard']);
-            } catch (error) {
-                const errorMessage: string = extractErrorMessage(error);
-                patchState(store, { user: null, status: 'unauthenticated' });
-                snackBar.error(errorMessage);
-            }
-        },
-
-        /**
-         * Register
-         * @param data 
-         * @return boolean
-         */
-        async register(data: RegisterReq): Promise<void> {
-            //TODO
-        },
-
-        /**
-         * Logout
-         */
-        async logout(): Promise<void> {
-            try {
-                await firstValueFrom(authService.logout());
-            } catch {
-                // We ignore the HTTP error and reset the client-side state anyway
-            } finally {
-                patchState(store, { user: null, status: 'unauthenticated' });
-                router.navigate(['/login']);
-            }
-        }
-
-    }))
 );

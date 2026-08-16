@@ -8,24 +8,15 @@ export const authGuard: CanActivateFn = () => {
   const authStore = inject(AuthStore);
   const router = inject(Router);
 
-  if (authStore.isAuth()) {
-    return true;
-  }
-
-  if (authStore.status() === 'idle') {
-    console.log('idle');
-
-    authStore.checkSession();
-  }
-
   return toObservable(authStore.status).pipe(
     filter((status) => status !== 'idle' && status !== 'loading'),
     take(1),
     map((status) => {
       if (status === 'authenticated') {
         return true;
+      } else {
+        return router.parseUrl('/login');
       }
-      return router.parseUrl('/login');
     })
   )
 };
