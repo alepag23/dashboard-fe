@@ -5,10 +5,14 @@ export interface RegisterReq {
     password: string;
 }
 
+export interface RegisterFormModel extends RegisterReq {
+    confirmPassword: string;
+}
+
 export type LoginReq = Omit<RegisterReq, 'name' | 'surname'>;
 
 export interface User extends Omit<RegisterReq, 'password'> {
-    //id: number;
+    id: number;
     //role:string;
     createdAt: string;
 }
@@ -20,3 +24,7 @@ export interface AuthSate {
     status: AuthStatus;
 }
 
+export interface SessionResponse {
+    authenticated: boolean;
+    user: User | null;
+}
