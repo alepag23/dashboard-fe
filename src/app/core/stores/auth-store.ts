@@ -43,7 +43,7 @@ export const AuthStore = signalStore(
                                 if (res.authenticated && res.user) {
                                     patchState(store, { user: res.user, status: 'authenticated' });
                                 } else {
-                                    patchState(store, { user: null, status: 'authenticated' });
+                                    patchState(store, { user: null, status: 'unauthenticated' });
                                 }
 
                             },
