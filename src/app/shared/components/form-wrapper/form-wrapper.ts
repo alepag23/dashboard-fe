@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-form-wrapper',
@@ -6,4 +6,6 @@ import { Component } from '@angular/core';
   templateUrl: './form-wrapper.html',
   styleUrl: './form-wrapper.scss',
 })
-export class FormWrapper {}
+export class FormWrapper {
+  title = input.required<string>();
+}

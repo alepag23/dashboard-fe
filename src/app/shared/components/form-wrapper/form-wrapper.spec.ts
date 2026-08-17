@@ -13,10 +13,15 @@ describe('FormWrapper', () => {
 
     fixture = TestBed.createComponent(FormWrapper);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('title', 'Test title');
     await fixture.whenStable();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('expect string type title', () => {
+    expect(typeof component.title()).toBe('string');
   });
 });
