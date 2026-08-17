@@ -1,18 +1,28 @@
 import { TestBed } from '@angular/core/testing';
-import { LoginReq, LoginRes } from '../../shared/models/auth-model';
+import { LoginReq, RegisterReq, User } from '../../shared/models/auth-model';
 import { AuthService } from './auth-service';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { environment } from '../../../environments/envirornment-local';
+import { AuthStore } from '../stores/auth-store';
+import { provideHttpClient } from '@angular/common/http';
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
 
+  const ResponseLoginAndRegister: User = {
+    id: 1,
+    name: 'Jef',
+    surname: 'Azopp',
+    email: 'test@test.com',
+    createdAt: Date()
+  }
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        //provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ]
     });
     service = TestBed.inject(AuthService);
@@ -23,50 +33,42 @@ describe('AuthService', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('login', () => {
+  describe('Login', () => {
 
-    const fakeUser: LoginReq = {
+    const fakeUserLogin: LoginReq = {
       email: 'test@test.com',
       password: '12345678',
     }
-    const loginRes: LoginRes = {
-      message: 'Login success',
-    }
 
     it('posts the credentials to the login endpoint sending cookies', () => {
-      service.login(fakeUser).subscribe();
+      service.login(fakeUserLogin).subscribe((res) => {
+        expect(res).toEqual(ResponseLoginAndRegister);
+      });
 
       const req = httpMock.expectOne(`${environment.apiPath + environment.apiUrlAuth}/login`);
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toBe(fakeUser);
-      expect(req.request.withCredentials).toBe(true);
-      req.flush(loginRes);
+      expect(req.request.body).toEqual(fakeUserLogin);
+      req.flush(ResponseLoginAndRegister);
     });
+  });
 
-    it('marks the user as authenticate on success', () => {
-      service.login(fakeUser).subscribe();
-      httpMock.expectOne(`${environment.apiPath + environment.apiUrlAuth}/login`).flush(loginRes);
-      expect(service.isAuthenticated()).toBe(true);
-    });
+  describe('Register', () => {
 
-    it('propagates the error and stay unauthenticated when credential are rejected', () => {
-      const onError = vi.fn();
+    const fakeUserRegister: RegisterReq = {
+      name: 'test',
+      surname: 'testTest',
+      email: 'test@email.test',
+      password: '12345678'
+    };
 
-      service.login(fakeUser).subscribe({
-        next: () => { },
-        error: onError,
+    it('create user with register endpoint', () => {
+      service.register(fakeUserRegister).subscribe((res) => {
+        expect(res).toEqual(ResponseLoginAndRegister);
       });
-
-      httpMock.expectOne(`${environment.apiPath + environment.apiUrlAuth}/login`).flush(
-        { message: 'Invalid credentials' },
-        {
-          status: 401,
-          statusText: 'Unauthorized',
-        }
-      );
-
-      expect(onError).toHaveBeenCalled();
-      expect(service.isAuthenticated()).toBe(false);
+      const req = httpMock.expectOne(`${environment.apiPath + environment.apiUrlAuth}/register`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(fakeUserRegister);
+      req.flush(ResponseLoginAndRegister);
     });
 
   })

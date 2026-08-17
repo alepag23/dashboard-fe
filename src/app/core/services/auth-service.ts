@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { Observable } from 'rxjs';
-import { LoginReq, LoginRes, RegisterReq, User } from '../../shared/models/auth-model';
+import { LoginReq, RegisterReq, SessionResponse, User } from '../../shared/models/auth-model';
 import { environment } from '../../../environments/envirornment-local';
 
 @Service()
@@ -9,20 +9,20 @@ export class AuthService {
     private readonly http = inject(HttpClient);
     baseUrlAuth: string = environment.apiPath + environment.apiUrlAuth;
 
-    register(data: RegisterReq): Observable<LoginRes> {
-        return this.http.post<LoginRes>(`${this.baseUrlAuth}/register`, data);
+    register(data: RegisterReq): Observable<User> {
+        return this.http.post<User>(`${this.baseUrlAuth}/register`, data);
     }
 
-    login(data: LoginReq): Observable<LoginRes> {
-        return this.http.post<LoginRes>(`${this.baseUrlAuth}/login`, data);
+    login(data: LoginReq): Observable<User> {
+        return this.http.post<User>(`${this.baseUrlAuth}/login`, data);
     }
 
     /**
      * Call used on bootstrap/refresh to check for the httpOnly cookie
      * @returns User
      */
-    getMe(): Observable<User> {
-        return this.http.get<User>(`${this.baseUrlAuth}/me`);
+    checkSession(): Observable<SessionResponse> {
+        return this.http.get<SessionResponse>(`${this.baseUrlAuth}/checkSession`);
     }
 
     logout(): Observable<void> {

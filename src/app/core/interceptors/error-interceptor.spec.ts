@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpInterceptorFn } from '@angular/common/http';
 
-import { authInterceptor } from './auth-interceptor';
+import { errorInterceptor } from './error-interceptor';
 
-describe('authInterceptor', () => {
+describe('errorInterceptor', () => {
   const interceptor: HttpInterceptorFn = (req, next) =>
-    TestBed.runInInjectionContext(() => authInterceptor(req, next));
+    TestBed.runInInjectionContext(() => errorInterceptor(req, next));
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
@@ -13,13 +13,5 @@ describe('authInterceptor', () => {
 
   it('should be created', () => {
     expect(interceptor).toBeTruthy();
-  });
-
-  it('should add withCredentials', () => {
-
-  });
-
-  it('redirect to login page if error = 401', () => {
-
   });
 });
