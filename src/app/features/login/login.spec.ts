@@ -1,22 +1,126 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Login } from './login';
+import { AuthStore } from '../../core/stores/auth-store';
 
 describe('Login', () => {
   let component: Login;
   let fixture: ComponentFixture<Login>;
+  let element: HTMLElement;
+  const mockAuthStore = {
+    login: vi.fn(),
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Login],
+      providers: [
+        { provide: AuthStore, useValue: mockAuthStore }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(Login);
     component = fixture.componentInstance;
+    element = fixture.nativeElement;
     await fixture.whenStable();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should initialize form as invalid and submit disabled', () => {
+    const submitBtn = element.querySelector('button[type="submit"]') as HTMLButtonElement;
+    expect(component['loginForm']().invalid()).toBeTruthy();
+    expect(submitBtn.disabled).toBeTruthy();
+  });
+
+  it('should validate email format correctly', () => {
+    const emailField = component['loginForm'].email;
+
+    // set invalid email
+    emailField().value.set('test-invalid-data');
+    fixture.detectChanges();
+    expect(emailField().invalid()).toBeTruthy();
+
+    // set valid email
+    emailField().value.set('test@test');
+    fixture.detectChanges();
+    expect(emailField().valid()).toBeTruthy();
+  });
+
+  it('should validate password format correctly', () => {
+    const passwordField = component['loginForm'].password;
+
+    // set invalid password
+    passwordField().value.set('123');
+    fixture.detectChanges();
+    expect(passwordField().invalid()).toBeTruthy();
+    const minLengthError = passwordField().errors().find(e => e.message === 'At least 8 characters');
+    expect(minLengthError).toBeDefined();
+
+    // set valid password
+    passwordField().value.set('12345678');
+    fixture.detectChanges();
+    expect(passwordField().valid()).toBeTruthy();
+  });
+
+  it('should call authStore.login on form submission with valid data', async () => {
+    const form = component['loginForm'];
+
+    form.email().value.set('jhon.black@example.com');
+    form.password().value.set('password123');
+
+    fixture.detectChanges();
+    // Send form throght dom element
+    const formElement = element.querySelector('form') as HTMLFormElement;
+    formElement.dispatchEvent(new Event('submit'));
+
+    fixture.detectChanges();
+
+    const submitBtn = element.querySelector('button[type="submit"]')?.textContent;
+
+    expect(submitBtn).toContain('Sign in...');
+
+    expect(mockAuthStore.login).toHaveBeenCalledTimes(1);
+    expect(mockAuthStore.login).toHaveBeenCalledWith({
+      email: 'jhon.black@example.com',
+      password: 'password123',
+    });
+  });
+
+  it('should display correct validation error messages when fields are empty and invalid', () => {
+    const form = component['loginForm'];
+
+    // Empty fields
+    form.email().value.set('');
+    form.email().markAsTouched();
+
+    form.password().value.set('');
+    form.password().markAsTouched();
+
+    fixture.detectChanges();
+
+    let matErrorElements = element.querySelectorAll('mat-error');
+    let errorMessages = Array.from(matErrorElements).map(err => err.textContent?.trim());
+
+    expect(errorMessages).toEqual([
+      'Email is required',
+      'Password is required',
+    ]);
+
+    // Invalid fields
+    form.email().value.set('invalid-email');
+    form.password().value.set('123');
+
+    fixture.detectChanges();
+
+    matErrorElements = element.querySelectorAll('mat-error');
+    errorMessages = Array.from(matErrorElements).map(err => err.textContent?.trim());
+
+    expect(errorMessages).toEqual([
+      'Enter a valid email',
+      'At least 8 characters',
+    ]);
   });
 });
