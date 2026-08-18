@@ -148,31 +148,47 @@ describe('Register', () => {
     });
   });
 
-  it('should display validation error messages for all invalid touched fields', () => {
+  it('should display correct validation error messages when fields are empty vs invalid', () => {
     const form = component['registerForm'];
-    const fields = [
-      form.name(),
-      form.surname(),
-      form.email(),
-      form.password(),
-      form.confirmPassword(),
-    ];
 
-    fields.forEach(field => {
-      field.value.set('');
-      field.markAsTouched();
-    });
+    // Empty fields
+    form.name().value.set('');
+    form.surname().value.set('');
+    form.email().value.set('');
+    form.password().value.set('');
+    form.confirmPassword().value.set('');
+
+    [form.name(), form.surname(), form.email(), form.password(), form.confirmPassword()].forEach(f => f.markAsTouched());
+
     fixture.detectChanges();
 
-    const matErrorElements = element.querySelectorAll('mat-error');
-    const errorMessages = Array.from(matErrorElements).map(err => err.textContent.trim());
-    expect(errorMessages.length).toBe(5);
+    let matErrorElements = element.querySelectorAll('mat-error');
+    let errorMessages = Array.from(matErrorElements).map(err => err.textContent?.trim());
+
     expect(errorMessages).toEqual([
       'Name is required',
       'Surname is required',
       'Email is required',
       'Password is required',
-      'Confirm Password is required'
+      'Confirm Password is required',
+    ]);
+
+    // Invalid fields
+    form.name().value.set('Jhon');
+    form.surname().value.set('Black');
+    form.email().value.set('invalid-email');
+    form.password().value.set('123');
+    form.confirmPassword().value.set('456');
+
+    fixture.detectChanges();
+
+    matErrorElements = element.querySelectorAll('mat-error');
+    errorMessages = Array.from(matErrorElements).map(err => err.textContent?.trim());
+
+    expect(errorMessages).toEqual([
+      'Enter a valid email',
+      'At least 8 characters',
+      'Passwords do not match',
     ]);
   });
 });
