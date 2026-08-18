@@ -26,7 +26,7 @@ export class Login {
     required(schemaPath.email, { message: 'Email is required' });
     email(schemaPath.email, { message: 'Enter a valid email' });
     // Password validation
-    required(schemaPath.password, { message: 'password is required' });
+    required(schemaPath.password, { message: 'Password is required' });
     minLength(schemaPath.password, 8, { message: 'At least 8 characters' });
   }, {
     submission: {
